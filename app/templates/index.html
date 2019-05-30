@@ -1,0 +1,26 @@
+{% extends "_base.html" %}
+
+{% block content %}
+    <h2>Список отчетов:</h2>
+    {% if date %}
+      <h4>{{ date }}</h4>
+      <a class="waves-effect waves-light btn" href="{% url "file_list" %}">Убрать фильтр по дате</a>
+    {% endif %}
+    <ul class="collection">
+    {% for f in files %}
+      <li class="collection-item avatar">
+        <i class="material-icons circle green">insert_chart</i>
+          <span class="title"><a href="{% url "file_content" name=f.name %}">{{ f.name }}</a></span>
+        <p>
+          Создан:
+            {{ f.mtime }}
+          <br>
+          Изменен:
+            {{ f.ctime }}
+        </p>
+      </li>
+    {% empty %}
+      Не чего показывать
+    {% endfor %}
+    </ul>
+{% endblock %}
