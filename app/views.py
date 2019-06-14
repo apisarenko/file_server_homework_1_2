@@ -50,3 +50,4 @@ def file_content(request, name):
         temp_path,
         context={'file_name': name, 'file_content': content}
     )
+
