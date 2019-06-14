@@ -7,41 +7,46 @@ from app import settings
 
 def file_list(request, year=None, month=None, day=None):
     template_name = 'index.html'
-    list_of_files = []
-    file_name_list = os.listdir(settings.FILES_PATH)
-    for file_name in file_name_list:
-        file_data = {}
-        file_data['name'] = file_name
-        file_discript = os.stat('files/' + file_name)
-        file_data['ctime'] = datetime.date.fromtimestamp(file_discript.st_ctime)
-        file_data['mtime'] = datetime.date.fromtimestamp(file_discript.st_mtime)
-        list_of_files.append(file_data)
-    context = {
-        'files': list_of_files,
-        'date': None
-    }
-
-    if year is not None:
-        context.clear()
-        out_file_list = []
+    file_listing = []
+    file_names = os.listdir(settings.FILES_PATH)
+    if year:
         url_date = datetime.date(year, month, day)
-        for file in list_of_files:
-            if file['mtime'] == url_date:
-                out_file_list.append(file)
-        context = {
-            'files': out_file_list,
-            'date': url_date
-        }
-
+    else:
+        url_date = None
+    for name in file_names:
+        file_dict = {}
+        file_dict['name'] = name
+        file_data = os.stat(settings.FILES_PATH + '/' + name)
+        file_dict['ctime'] = datetime.date.fromtimestamp(file_data.st_ctime)
+        file_dict['mtime'] = datetime.date.fromtimestamp(file_data.st_mtime)
+        if url_date is not None:
+            if file_dict['mtime'] == url_date:
+                file_listing.append(file_dict)
+        else:
+            file_listing.append(file_dict)
+    context = {
+        'files': sorted(file_listing, key=lambda k: k['mtime']),
+        'date': url_date
+    }
     return render(request, template_name, context)
 
 
 def file_content(request, name):
-    with open('files/' + name, 'r') as file:
-        content = file.read()
-    # Реализуйте алгоритм подготавливающий контекстные данные для шаблона по примеру:
+    content = ''
+    if os.path.exists(settings.FILES_PATH):
+        if os.path.isfile(settings.FILES_PATH + '/' + name):
+            with open(settings.FILES_PATH + '/' + name, 'r') as f:
+                content = f.read()
+                temp_path = 'file_content.html'
+        else:
+            temp_path = 'error.html'
+            content = 'Не найден файл'
+    else:
+        temp_path = 'error.html'
+        content = 'Не найдена директория с файлами'
+
     return render(
         request,
-        'file_content.html',
+        temp_path,
         context={'file_name': name, 'file_content': content}
     )
